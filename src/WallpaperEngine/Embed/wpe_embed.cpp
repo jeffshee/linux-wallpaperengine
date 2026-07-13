@@ -6,6 +6,8 @@
 #include "WallpaperEngine/Application/WallpaperApplication.h"
 #include "WallpaperEngine/Render/Drivers/Detectors/FullScreenDetector.h"
 
+#include <SDL.h>
+
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
@@ -103,6 +105,10 @@ wpe_context* wpe_context_create (
     for (auto& arg : ctx->args) {
 	ctx->argv.push_back (arg.data ());
     }
+
+    // the audio subsystem initializes SDL, whose default SIGINT/SIGTERM
+    // handlers would swallow the host process's termination signals
+    SDL_SetHint (SDL_HINT_NO_SIGNAL_HANDLERS, "1");
 
     try {
 	ctx->appContext = std::make_unique<ApplicationContext> (static_cast<int> (ctx->argv.size ()), ctx->argv.data ());
