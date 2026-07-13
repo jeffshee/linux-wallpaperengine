@@ -10,6 +10,7 @@
 #include <SDL.h>
 
 #include <algorithm>
+#include <clocale>
 #include <cstdlib>
 #include <cstring>
 #include <memory>
@@ -110,6 +111,11 @@ wpe_context* wpe_context_create (
     // the audio subsystem initializes SDL, whose default SIGINT/SIGTERM
     // handlers would swallow the host process's termination signals
     SDL_SetHint (SDL_HINT_NO_SIGNAL_HANDLERS, "1");
+
+    // scenes with video textures play them through libmpv, which refuses to
+    // initialize under a non-C numeric locale (GUI hosts like GTK apply the
+    // user's locale process-wide)
+    setlocale (LC_NUMERIC, "C");
 
     try {
 	ctx->appContext = std::make_unique<ApplicationContext> (static_cast<int> (ctx->argv.size ()), ctx->argv.data ());
