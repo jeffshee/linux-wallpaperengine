@@ -27,7 +27,7 @@ typedef struct wpe_context wpe_context;
 typedef void* (*wpe_get_proc_address_fn) (void* userdata, const char* name);
 
 typedef struct wpe_init_params {
-    /** Path to the Wallpaper Engine "assets" directory. Required. */
+    /** Path to the Wallpaper Engine "assets" directory. NULL/empty auto-detects a Steam install. */
     const char* assets_dir;
     /** Path to the background directory (contains project.json) or a workshop id. Required. */
     const char* background;

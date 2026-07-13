@@ -49,15 +49,20 @@ static void setError (char** error_out, const char* message) {
 wpe_context* wpe_context_create (
     const wpe_init_params* params, const wpe_get_proc_address_fn get_proc_address, void* userdata, char** error_out
 ) {
-    if (params == nullptr || params->assets_dir == nullptr || params->background == nullptr
-	|| get_proc_address == nullptr) {
-	setError (error_out, "wpe_context_create: assets_dir, background and get_proc_address are required");
+    if (params == nullptr || params->background == nullptr || get_proc_address == nullptr) {
+	setError (error_out, "wpe_context_create: background and get_proc_address are required");
 	return nullptr;
     }
 
     auto ctx = std::make_unique<wpe_context> ();
 
-    ctx->args = { "wpe-embed", "--assets-dir", params->assets_dir };
+    ctx->args = { "wpe-embed" };
+
+    // without the flag the engine falls back to Steam install detection
+    if (params->assets_dir != nullptr && params->assets_dir [0] != '\0') {
+	ctx->args.emplace_back ("--assets-dir");
+	ctx->args.emplace_back (params->assets_dir);
+    }
 
     if (params->disable_mouse) {
 	ctx->args.emplace_back ("--disable-mouse");
