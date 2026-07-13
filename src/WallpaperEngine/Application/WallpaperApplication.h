@@ -77,6 +77,16 @@ public:
     void setDestinationFramebuffer (GLuint framebuffer);
 
     /**
+     * Injects an embedder-provided video driver and fullscreen detector.
+     * Must be called before setup(); when set, setup() skips the built-in
+     * window-server driver detection.
+     */
+    void setExternalComponents (
+	std::unique_ptr<WallpaperEngine::Render::Drivers::VideoDriver> driver,
+	std::unique_ptr<WallpaperEngine::Render::Drivers::Detectors::FullScreenDetector> fullScreenDetector
+    );
+
+    /**
      * Gets the currently set destination framebuffer for rendering. If not set, returns 0 (the default framebuffer).
      */
     [[nodiscard]] GLuint getDestinationFramebuffer () const;

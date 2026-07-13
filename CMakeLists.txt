@@ -548,7 +548,15 @@ set(COMMON_SOURCES
     src/WallpaperEngine/Scripting/ScriptableObject.cpp
 
     src/WallpaperEngine/Maths.h
-    src/WallpaperEngine/Maths.cpp)
+    src/WallpaperEngine/Maths.cpp
+
+    src/WallpaperEngine/Embed/wpe_embed.h
+    src/WallpaperEngine/Embed/wpe_embed.cpp
+    src/WallpaperEngine/Embed/ExternalMouseInput.h
+    src/WallpaperEngine/Embed/ExternalOpenGLDriver.cpp
+    src/WallpaperEngine/Embed/ExternalOpenGLDriver.h
+    src/WallpaperEngine/Embed/ExternalOutput.cpp
+    src/WallpaperEngine/Embed/ExternalOutput.h)
 
 if(BUILD_TESTING)
     add_executable(
@@ -688,6 +696,15 @@ add_executable(linux-wallpaperengine
     src/main.cpp)
 
 target_link_libraries (linux-wallpaperengine PUBLIC linux-wallpaperengine-lib)
+
+# standalone exerciser for the embedding API (src/WallpaperEngine/Embed/wpe_embed.h)
+add_executable(wpe-embed-test
+    examples/embed-test.cpp)
+
+target_link_libraries (wpe-embed-test PUBLIC linux-wallpaperengine-lib glfw)
+
+set_target_properties(wpe-embed-test PROPERTIES
+    RUNTIME_OUTPUT_DIRECTORY ${TARGET_OUTPUT_DIRECTORY})
 
 # Install the main executable and shared library via install(TARGETS)
 # so that CMake automatically strips/replaces the build-time RPATH.

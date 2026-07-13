@@ -823,7 +823,9 @@ void WallpaperApplication::setupOpenGLDebugging () {
 }
 
 void WallpaperApplication::setup () {
-    this->setupOutput ();
+    if (this->m_videoDriver == nullptr) {
+	this->setupOutput ();
+    }
     this->setupAudio ();
     this->prepareOutputs ();
     this->setupOpenGLDebugging ();
@@ -987,6 +989,14 @@ ApplicationContext& WallpaperApplication::getContext () const { return this->m_c
 
 const WallpaperEngine::Render::Drivers::Output::Output& WallpaperApplication::getOutput () const {
     return this->m_renderContext->getOutput ();
+}
+
+void WallpaperApplication::setExternalComponents (
+    std::unique_ptr<WallpaperEngine::Render::Drivers::VideoDriver> driver,
+    std::unique_ptr<WallpaperEngine::Render::Drivers::Detectors::FullScreenDetector> fullScreenDetector
+) {
+    this->m_videoDriver = std::move (driver);
+    this->m_fullScreenDetector = std::move (fullScreenDetector);
 }
 
 void WallpaperApplication::setDestinationFramebuffer (GLuint framebuffer) {
