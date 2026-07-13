@@ -33,13 +33,10 @@ void* getProcAddress (void* userdata, const char* name) {
 }
 
 bool savePng (const std::string& path, const std::vector<unsigned char>& rgba) {
-    // flip vertically: GL reads bottom-up, PNG is top-down
-    std::vector<unsigned char> flipped (rgba.size ());
-    for (int y = 0; y < HEIGHT; y++) {
-	memcpy (&flipped [y * WIDTH * 4], &rgba [(HEIGHT - 1 - y) * WIDTH * 4], WIDTH * 4);
-    }
-
-    return stbi_write_png (path.c_str (), WIDTH, HEIGHT, 4, flipped.data (), WIDTH * 4) != 0;
+    // with vflip=0 the engine writes rows top-down into the FBO (the
+    // orientation GTK expects when sampling a GLArea framebuffer), so the
+    // glReadPixels buffer is already in PNG row order
+    return stbi_write_png (path.c_str (), WIDTH, HEIGHT, 4, rgba.data (), WIDTH * 4) != 0;
 }
 } // namespace
 
