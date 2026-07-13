@@ -583,6 +583,14 @@ add_library(
     ${X11_SOURCES}
     ${DEMOMODE_SOURCES})
 
+# Keep symbols from the vendored static libraries (quickjs, glslang,
+# spirv-cross, kissfft, ...) out of the shared library's dynamic symbol
+# table. Without this, quickjs's public API (js_malloc, JS_NewContext, ...)
+# is exported and interposable: in an embedding host that also loads mujs
+# (e.g. via libmpv), the dynamic linker binds quickjs's internal calls to
+# mujs's identically-named symbols and crashes.
+target_link_options(linux-wallpaperengine-lib PRIVATE "LINKER:--exclude-libs,ALL")
+
 target_link_libraries (linux-wallpaperengine-lib PUBLIC
     ${OPENGL_LIBRARIES}
     GLEW::GLEW
