@@ -45,6 +45,8 @@ typedef struct wpe_init_params {
     int disable_audio_processing;
     /** Initial volume, 0-128. */
     int volume;
+    /** Viewport scaling mode: "stretch", "fit", "fill" or NULL for the scene default. */
+    const char* scaling;
     /** Optional NULL-terminated array of "name=value" wallpaper property overrides. */
     const char* const* properties;
 } wpe_init_params;

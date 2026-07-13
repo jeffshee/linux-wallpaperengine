@@ -86,6 +86,11 @@ wpe_context* wpe_context_create (
     ctx->args.emplace_back ("--volume");
     ctx->args.emplace_back (std::to_string (std::clamp (params->volume, 0, 128)));
 
+    if (params->scaling != nullptr && params->scaling [0] != '\0') {
+	ctx->args.emplace_back ("--scaling");
+	ctx->args.emplace_back (params->scaling);
+    }
+
     if (params->properties != nullptr) {
 	for (const char* const* property = params->properties; *property != nullptr; property++) {
 	    ctx->args.emplace_back ("--set-property");
