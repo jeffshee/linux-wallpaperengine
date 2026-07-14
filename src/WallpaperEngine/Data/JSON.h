@@ -87,7 +87,14 @@ public:
 	    return std::nullopt;
 	}
 
-	return *it;
+	// the conversion can throw on type mismatches (e.g. a string where a
+	// number is expected); treat malformed values as absent instead of
+	// terminating (these methods are noexcept)
+	try {
+	    return *it;
+	} catch (const std::exception&) {
+	    return std::nullopt;
+	}
     }
     template <typename T> [[nodiscard]] T optional (const std::string& key, T defaultValue) const noexcept {
 	auto base = this->base ();
@@ -97,7 +104,12 @@ public:
 	    return defaultValue;
 	}
 
-	return (*it);
+	// see above: fall back to the default on malformed values
+	try {
+	    return (*it);
+	} catch (const std::exception&) {
+	    return defaultValue;
+	}
     }
     [[nodiscard]] UserSettingUniquePtr user (const std::string& key, const Properties& properties) const;
     template <typename T>
