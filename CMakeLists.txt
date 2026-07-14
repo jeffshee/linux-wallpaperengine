@@ -44,6 +44,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(KISSFFT_TEST OFF)
 set(KISSFFT_TOOLS OFF)
 
+# Web wallpapers require CEF (Chromium Embedded Framework), a ~1GB download
+# with heavy runtime dependencies. Turn OFF to build a lean library without
+# web support - e.g. for embedding in a host that provides its own web
+# renderer. Scene and video wallpapers are unaffected.
+option(ENABLE_WEB "Build with CEF-based web wallpaper support" ON)
+
+if(ENABLE_WEB)
 # Download CEF of specified version for current platform
 # Specify the CEF distribution version.
 set(CEF_VERSION "135.0.17+gcbc1c5b+chromium-135.0.7049.52")
@@ -128,6 +135,7 @@ list(APPEND CEF_CXX_COMPILER_FLAGS -std=c++20)
 list(APPEND CEF_EXE_LINKER_FLAGS -rdynamic)
 # remove the vulkan library from the files to copy so it doesn't fail after removing it
 list(REMOVE_ITEM CEF_BINARY_FILES libvulkan.so.1)
+endif() # ENABLE_WEB
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/output)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib)
@@ -140,7 +148,9 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "\$ORIGIN;\$ORIGIN/lib;\$ORIGIN/lib64")
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 
-add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
+if(ENABLE_WEB)
+    add_subdirectory(${CEF_LIBCEF_DLL_WRAPPER_PATH} libcef_dll_wrapper)
+endif()
 add_subdirectory(src/External/glslang-WallpaperEngine glslang)
 add_subdirectory(src/External/SPIRV-Cross-WallpaperEngine spirv-cross)
 add_subdirectory(src/External/kissfft kissfft)
@@ -253,12 +263,14 @@ if(NOT WAYLAND_SUPPORT_FOUND AND NOT X11_SUPPORT_FOUND)
     message(WARNING "No window server detected at build time. You will only be able to preview backgrounds")
 endif()
 
-add_library(ceflib SHARED IMPORTED)
-set_target_properties(ceflib
-        PROPERTIES IMPORTED_LOCATION ${TARGET_OUTPUT_DIRECTORY}/libcef.so)
+if(ENABLE_WEB)
+    add_library(ceflib SHARED IMPORTED)
+    set_target_properties(ceflib
+            PROPERTIES IMPORTED_LOCATION ${TARGET_OUTPUT_DIRECTORY}/libcef.so)
 
-ADD_LOGICAL_TARGET(libcef_lib "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
-PRINT_CEF_CONFIG()
+    ADD_LOGICAL_TARGET(libcef_lib "${CEF_LIB_DEBUG}" "${CEF_LIB_RELEASE}")
+    PRINT_CEF_CONFIG()
+endif()
 
 # Embed scene-script builtins (builtins.js) into a generated header, so the JS can
 # live in its own file (lint/syntax-highlight friendly) instead of an inline literal.
@@ -418,8 +430,6 @@ set(COMMON_SOURCES
     src/WallpaperEngine/Render/Wallpapers/CScene.cpp
     src/WallpaperEngine/Render/Wallpapers/CVideo.h
     src/WallpaperEngine/Render/Wallpapers/CVideo.cpp
-    src/WallpaperEngine/Render/Wallpapers/CWeb.h
-    src/WallpaperEngine/Render/Wallpapers/CWeb.cpp
     src/WallpaperEngine/Render/Camera.h
     src/WallpaperEngine/Render/Camera.cpp
     src/WallpaperEngine/Render/CObject.h
@@ -445,21 +455,6 @@ set(COMMON_SOURCES
     src/WallpaperEngine/Render/CFBO.cpp
     src/WallpaperEngine/Render/Objects/Effects/CPass.h
     src/WallpaperEngine/Render/Objects/Effects/CPass.cpp
-
-    src/WallpaperEngine/WebBrowser/CEF/RenderHandler.cpp
-    src/WallpaperEngine/WebBrowser/CEF/RenderHandler.h
-    src/WallpaperEngine/WebBrowser/CEF/BrowserClient.cpp
-    src/WallpaperEngine/WebBrowser/CEF/BrowserClient.h
-    src/WallpaperEngine/WebBrowser/CEF/BrowserApp.cpp
-    src/WallpaperEngine/WebBrowser/CEF/BrowserApp.h
-    src/WallpaperEngine/WebBrowser/CEF/SubprocessApp.cpp
-    src/WallpaperEngine/WebBrowser/CEF/SubprocessApp.h
-    src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandlerFactory.cpp
-    src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandlerFactory.h
-    src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandler.cpp
-    src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandler.h
-    src/WallpaperEngine/WebBrowser/WebBrowserContext.cpp
-    src/WallpaperEngine/WebBrowser/WebBrowserContext.h
 
     src/WallpaperEngine/Data/Assets/Types.h
     src/WallpaperEngine/Data/Assets/Texture.h
@@ -558,6 +553,27 @@ set(COMMON_SOURCES
     src/WallpaperEngine/Embed/ExternalOutput.cpp
     src/WallpaperEngine/Embed/ExternalOutput.h)
 
+# Web wallpaper sources depend on CEF; only compile them when web is enabled.
+if(ENABLE_WEB)
+    list(APPEND COMMON_SOURCES
+        src/WallpaperEngine/Render/Wallpapers/CWeb.h
+        src/WallpaperEngine/Render/Wallpapers/CWeb.cpp
+        src/WallpaperEngine/WebBrowser/CEF/RenderHandler.cpp
+        src/WallpaperEngine/WebBrowser/CEF/RenderHandler.h
+        src/WallpaperEngine/WebBrowser/CEF/BrowserClient.cpp
+        src/WallpaperEngine/WebBrowser/CEF/BrowserClient.h
+        src/WallpaperEngine/WebBrowser/CEF/BrowserApp.cpp
+        src/WallpaperEngine/WebBrowser/CEF/BrowserApp.h
+        src/WallpaperEngine/WebBrowser/CEF/SubprocessApp.cpp
+        src/WallpaperEngine/WebBrowser/CEF/SubprocessApp.h
+        src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandlerFactory.cpp
+        src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandlerFactory.h
+        src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandler.cpp
+        src/WallpaperEngine/WebBrowser/CEF/WPSchemeHandler.h
+        src/WallpaperEngine/WebBrowser/WebBrowserContext.cpp
+        src/WallpaperEngine/WebBrowser/WebBrowserContext.h)
+endif()
+
 if(BUILD_TESTING)
     add_executable(
         tests
@@ -610,10 +626,13 @@ target_link_libraries (linux-wallpaperengine-lib PUBLIC
     spirv-cross-core
     spirv-cross-glsl
     glfw
-    libcef_lib
-    libcef_dll_wrapper
     argparse
     qjs)
+
+if(ENABLE_WEB)
+    target_link_libraries (linux-wallpaperengine-lib PUBLIC libcef_lib libcef_dll_wrapper)
+    target_compile_definitions (linux-wallpaperengine-lib PUBLIC WPENGINE_ENABLE_WEB)
+endif()
 
 if (BUILD_TESTING)
     target_link_libraries (tests PRIVATE
@@ -636,10 +655,11 @@ if (BUILD_TESTING)
         spirv-cross-core
         spirv-cross-glsl
         glfw
-        libcef_lib
-        libcef_dll_wrapper
         argparse
         qjs)
+    if(ENABLE_WEB)
+        target_link_libraries (tests PRIVATE libcef_lib libcef_dll_wrapper)
+    endif()
 endif()
 
 target_compile_definitions(linux-wallpaperengine-lib PUBLIC ERRORONLY=${ERRORONLY})
@@ -689,16 +709,22 @@ target_include_directories(linux-wallpaperengine-lib PUBLIC
     ${X11_INCLUDES}
     ${WAYLAND_OUTPUT_DIR})
 
-COPY_FILES(linux-wallpaperengine-lib "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${TARGET_OUTPUT_DIRECTORY}")
-COPY_FILES(linux-wallpaperengine-lib "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${TARGET_OUTPUT_DIRECTORY}")
-# remove the vulkan lib as chromium includes a broken libvulkan.so.1 with it
-file(REMOVE "${CEF_BINARY_DIR}/libvulkan.so.1")
+if(ENABLE_WEB)
+    COPY_FILES(linux-wallpaperengine-lib "${CEF_BINARY_FILES}" "${CEF_BINARY_DIR}" "${TARGET_OUTPUT_DIRECTORY}")
+    COPY_FILES(linux-wallpaperengine-lib "${CEF_RESOURCE_FILES}" "${CEF_RESOURCE_DIR}" "${TARGET_OUTPUT_DIRECTORY}")
+    # remove the vulkan lib as chromium includes a broken libvulkan.so.1 with it
+    file(REMOVE "${CEF_BINARY_DIR}/libvulkan.so.1")
+endif()
 set_target_properties(linux-wallpaperengine-lib PROPERTIES
     LIBRARY_OUTPUT_DIRECTORY ${TARGET_OUTPUT_DIRECTORY})
 
-add_dependencies(linux-wallpaperengine-lib libcef_dll_wrapper glslang spirv-cross-core spirv-cross-glsl)
-# custom version of cef's SET_EXECUTABLE_TARGET_PROPERTIES that fixes C files being compiled with the wrong parameters
-REPLACED_SET_EXECUTABLE_TARGET_PROPERTIES(linux-wallpaperengine-lib)
+if(ENABLE_WEB)
+    add_dependencies(linux-wallpaperengine-lib libcef_dll_wrapper glslang spirv-cross-core spirv-cross-glsl)
+    # custom version of cef's SET_EXECUTABLE_TARGET_PROPERTIES that fixes C files being compiled with the wrong parameters
+    REPLACED_SET_EXECUTABLE_TARGET_PROPERTIES(linux-wallpaperengine-lib)
+else()
+    add_dependencies(linux-wallpaperengine-lib glslang spirv-cross-core spirv-cross-glsl)
+endif()
 
 add_executable(linux-wallpaperengine
     src/main.cpp)

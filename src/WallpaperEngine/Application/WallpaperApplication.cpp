@@ -66,8 +66,18 @@ WallpaperApplication::WallpaperApplication (ApplicationContext& context) : m_con
     this->initializeSubsystems ();
     this->loadBackgrounds ();
     this->setupProperties ();
+#ifdef WPENGINE_ENABLE_WEB
     this->setupBrowser ();
+#endif
     this->initializePlaylists ();
+}
+
+WallpaperEngine::WebBrowser::WebBrowserContext* WallpaperApplication::browserContext () const {
+#ifdef WPENGINE_ENABLE_WEB
+    return this->m_browserContext.get ();
+#else
+    return nullptr;
+#endif
 }
 
 void WallpaperApplication::initializeSubsystems () {
@@ -319,6 +329,7 @@ void WallpaperApplication::initializePlaylists () {
     }
 }
 
+#ifdef WPENGINE_ENABLE_WEB
 void WallpaperApplication::ensureBrowserForProject (const Project& project) {
     if (!project.wallpaper->is<Web> ()) {
 	return;
@@ -328,6 +339,7 @@ void WallpaperApplication::ensureBrowserForProject (const Project& project) {
 	this->m_browserContext = std::make_unique<WebBrowser::WebBrowserContext> (*this);
     }
 }
+#endif
 
 bool WallpaperApplication::makeAnyViewportCurrent () const {
     if (!this->m_renderContext) {
@@ -433,7 +445,9 @@ void WallpaperApplication::advancePlaylist (
 	auto project = this->loadBackground (nextPath.string ());
 
 	this->setupPropertiesForProject (*project);
+#ifdef WPENGINE_ENABLE_WEB
 	this->ensureBrowserForProject (*project);
+#endif
 
 	this->m_backgrounds[screen] = std::move (project);
 
@@ -451,7 +465,7 @@ void WallpaperApplication::advancePlaylist (
 		screen,
 		WallpaperEngine::Render::CWallpaper::fromWallpaper (
 		    *this->m_backgrounds[screen]->wallpaper, *this->m_renderContext, *this->m_audioContext,
-		    this->m_browserContext.get (), scaling, clamp
+		    this->browserContext (), scaling, clamp
 		)
 	    );
 	}
@@ -523,6 +537,7 @@ void WallpaperApplication::setupProperties () {
     }
 }
 
+#ifdef WPENGINE_ENABLE_WEB
 void WallpaperApplication::setupBrowser () {
     bool anyWebProject = std::any_of (
 	this->m_backgrounds.begin (), this->m_backgrounds.end (),
@@ -538,6 +553,7 @@ void WallpaperApplication::setupBrowser () {
 
     this->m_browserContext = std::make_unique<WebBrowser::WebBrowserContext> (*this);
 }
+#endif
 
 void WallpaperApplication::takeScreenshot (const std::filesystem::path& filename) const {
     const int width = this->m_renderContext->getOutput ().getFullWidth ();
@@ -742,7 +758,7 @@ void WallpaperApplication::prepareOutputs () {
 	m_renderContext->setWallpaper (
 	    background,
 	    WallpaperEngine::Render::CWallpaper::fromWallpaper (
-		*info->wallpaper, *m_renderContext, *m_audioContext, m_browserContext.get (), scaling, clamp
+		*info->wallpaper, *m_renderContext, *m_audioContext, this->browserContext (), scaling, clamp
 	    )
 	);
     }
@@ -800,7 +816,7 @@ void WallpaperApplication::prepareOutputs () {
 
 	// Create one shared wallpaper with the span group's scaling mode
 	auto sharedWallpaper = WallpaperEngine::Render::CWallpaper::fromWallpaper (
-	    *bgIt->second->wallpaper, *m_renderContext, *m_audioContext, m_browserContext.get (), spanGroup.scaling,
+	    *bgIt->second->wallpaper, *m_renderContext, *m_audioContext, this->browserContext (), spanGroup.scaling,
 	    spanGroup.clamp
 	);
 

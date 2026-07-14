@@ -15,7 +15,13 @@
 #include "WallpaperEngine/Audio/Drivers/SDLAudioDriver.h"
 
 #include "WallpaperEngine/Input/InputContext.h"
+#ifdef WPENGINE_ENABLE_WEB
 #include "WallpaperEngine/WebBrowser/WebBrowserContext.h"
+#else
+namespace WallpaperEngine::WebBrowser {
+class WebBrowserContext;
+}
+#endif
 
 #include "WallpaperEngine/Data/Model/Types.h"
 #include "WallpaperEngine/Media/MediaSource.h"
@@ -129,6 +135,10 @@ private:
      */
     void setupBrowser ();
     /**
+     * @return The web browser context, or nullptr when built without web support
+     */
+    [[nodiscard]] WallpaperEngine::WebBrowser::WebBrowserContext* browserContext () const;
+    /**
      * Prepares desktop environment-related things (like render, window, fullscreen detector, etc)
      */
     void setupOutput ();
@@ -184,7 +194,9 @@ private:
     std::unique_ptr<WallpaperEngine::Render::RenderContext> m_renderContext = nullptr;
     std::unique_ptr<WallpaperEngine::Render::Drivers::VideoDriver> m_videoDriver = nullptr;
     std::unique_ptr<WallpaperEngine::Render::Drivers::Detectors::FullScreenDetector> m_fullScreenDetector = nullptr;
+#ifdef WPENGINE_ENABLE_WEB
     std::unique_ptr<WallpaperEngine::WebBrowser::WebBrowserContext> m_browserContext = nullptr;
+#endif
     std::unique_ptr<WallpaperEngine::Media::MediaSource> m_mediaSource = nullptr;
     std::mt19937 m_playlistRng { std::random_device {}() };
     bool m_isPaused = false;

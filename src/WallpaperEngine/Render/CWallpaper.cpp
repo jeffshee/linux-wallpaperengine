@@ -2,7 +2,9 @@
 #include "WallpaperEngine/Logging/Log.h"
 #include "WallpaperEngine/Render/Wallpapers/CScene.h"
 #include "WallpaperEngine/Render/Wallpapers/CVideo.h"
+#ifdef WPENGINE_ENABLE_WEB
 #include "WallpaperEngine/Render/Wallpapers/CWeb.h"
+#endif
 
 #include "WallpaperEngine/Data/Model/Project.h"
 #include "WallpaperEngine/Data/Model/Wallpaper.h"
@@ -356,9 +358,13 @@ std::unique_ptr<CWallpaper> CWallpaper::fromWallpaper (
     }
 
     if (wallpaper.is<Web> ()) {
+#ifdef WPENGINE_ENABLE_WEB
 	return std::make_unique<WallpaperEngine::Render::Wallpapers::CWeb> (
 	    wallpaper, context, audioContext, *browserContext, scalingMode, clampMode
 	);
+#else
+	sLog.exception ("This build was compiled without web wallpaper support (ENABLE_WEB=OFF)");
+#endif
     }
 
     sLog.exception ("Unsupported wallpaper type");
