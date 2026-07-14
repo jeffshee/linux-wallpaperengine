@@ -4,6 +4,7 @@
 
 #include "WallpaperEngine/Application/ApplicationContext.h"
 #include "WallpaperEngine/Application/WallpaperApplication.h"
+#include "WallpaperEngine/Logging/Log.h"
 #include "WallpaperEngine/Render/Drivers/Detectors/FullScreenDetector.h"
 
 #include <SDL.h>
@@ -162,8 +163,14 @@ void wpe_context_render (
 	ctx->driver->getMouseInput ().setButtons (ctx->mouseLeft, ctx->mouseRight);
     }
 
-    ctx->app->setDestinationFramebuffer (framebuffer);
-    ctx->app->render ();
+    // exceptions must not cross the C boundary into the host; a failing
+    // frame logs and leaves the previous framebuffer contents alone
+    try {
+	ctx->app->setDestinationFramebuffer (framebuffer);
+	ctx->app->render ();
+    } catch (const std::exception& e) {
+	sLog.error ("wpe_context_render: ", e.what ());
+    }
 }
 
 void wpe_context_set_paused (wpe_context* ctx, const int paused) { ctx->paused = paused != 0; }
