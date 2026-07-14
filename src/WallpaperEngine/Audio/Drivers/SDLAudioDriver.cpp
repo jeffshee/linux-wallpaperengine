@@ -57,10 +57,13 @@ void audio_callback (void* userdata, uint8_t* streamData, int length) {
 		len1 = streamLength;
 	    }
 
-	    // mix the audio
+	    // mix the audio; a disabled audio state mutes the output (the
+	    // buffer is pre-zeroed) while decoding keeps advancing, so
+	    // re-enabling resumes at the current position
+	    const auto& audioState = driver->getApplicationContext ().state.audio;
 	    SDL_MixAudioFormat (
 		streamDataPointer, &buffer->audio_buf[buffer->audio_buf_index], driver->getSpec ().format, len1,
-		driver->getApplicationContext ().state.audio.volume
+		audioState.enabled ? audioState.volume : 0
 	    );
 
 	    streamLength -= len1;
