@@ -29,7 +29,6 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 
 find_package(DBus REQUIRED)
-find_package(GLUT REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(SDL2 REQUIRED)
 find_package(MPV REQUIRED)
@@ -610,7 +609,6 @@ target_link_options(linux-wallpaperengine-lib PRIVATE "LINKER:--exclude-libs,ALL
 target_link_libraries (linux-wallpaperengine-lib PUBLIC
     ${OPENGL_LIBRARIES}
     GLEW::GLEW
-    ${GLUT_LIBRARIES}
     ${ZLIB_LIBRARIES}
     ${LZ4_LIBRARY}
     ${SDL2_LIBRARIES}
@@ -639,7 +637,6 @@ if (BUILD_TESTING)
         Catch2::Catch2WithMain
         ${OPENGL_LIBRARIES}
         GLEW::GLEW
-        ${GLUT_LIBRARIES}
         ${ZLIB_LIBRARIES}
         ${LZ4_LIBRARY}
         ${SDL2_LIBRARIES}
