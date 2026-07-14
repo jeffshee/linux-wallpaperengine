@@ -21,6 +21,20 @@
 extern "C" {
 #endif
 
+/**
+ * ABI version of this embedding interface. Bump whenever the layout of
+ * wpe_init_params or the signature of any wpe_* function changes in a way
+ * that breaks binary compatibility (add/reorder/resize a field, change a
+ * parameter). Adding a new function without touching existing ones does not
+ * require a bump. A host that loads the library at runtime should compare
+ * its compiled-in value against wpe_abi_version() and refuse to proceed on
+ * mismatch.
+ */
+#define WPE_EMBED_ABI_VERSION 1
+
+/** Returns the ABI version the library was built with (WPE_EMBED_ABI_VERSION). */
+int wpe_abi_version (void);
+
 typedef struct wpe_context wpe_context;
 
 /** Resolves an OpenGL function by name (same contract as libmpv). */

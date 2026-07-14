@@ -20,6 +20,8 @@
 using namespace WallpaperEngine::Application;
 using namespace WallpaperEngine::Embed;
 
+int wpe_abi_version (void) { return WPE_EMBED_ABI_VERSION; }
+
 struct wpe_context {
     /** argv strings backing the ApplicationContext for its whole lifetime */
     std::vector<std::string> args {};
